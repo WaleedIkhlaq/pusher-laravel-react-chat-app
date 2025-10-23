@@ -41,7 +41,7 @@
                 DB ::commit ();
                 
                 $message -> load ( [ 'sender', 'receiver' ] );
-                broadcast ( new MessageSent ( $message ) ) -> toOthers ();
+                MessageSent ::dispatch ( $message );
                 
                 return response () -> json ( [ 'message' => $message ] );
             }

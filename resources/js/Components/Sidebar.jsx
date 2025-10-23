@@ -3,13 +3,14 @@ import { FaPowerOff, FaSearch } from "react-icons/fa";
 import { GiHamburgerMenu } from "react-icons/gi";
 import DefaultImage from '../assets/images/1053244.png';
 import Users from "@/Components/Users.jsx";
+import { useState } from "react";
 
 export default function Sidebar () {
-    const { props } = usePage ();
+    const { props }             = usePage ();
+    const [ search, setSearch ] = useState ( '' );
     
     return (
         <>
-            
             <div className="sidebar bg-dark vh-100 col-md-4">
                 <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-body">
                     <h3 className="mb-0">{ props.appName }</h3>
@@ -28,6 +29,7 @@ export default function Sidebar () {
                     className="d-flex justify-content-between align-items-center py-3 position-relative border-bottom border-body mb-3">
                     <div className="form-group input-group">
                         <input type="text" name="search" aria-label="Search"
+                               onKeyUp={ ( e ) => setSearch ( e.target.value ) }
                                aria-describedby="search" placeholder="Search for chats"
                                className="form-control bg-body text-gray" />
                         <div className="input-group-prepend">
@@ -40,7 +42,7 @@ export default function Sidebar () {
                     </div>
                 </div>
                 
-                <Users />
+                <Users search={ search } />
             </div>
         </>
     )

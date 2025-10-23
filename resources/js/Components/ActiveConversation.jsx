@@ -72,10 +72,6 @@ export default function ActiveConversation () {
                 message: message,
             } )
             .then ( function ( response ) {
-                setMessages ( ( prev ) => ( {
-                    ...prev,
-                    [ user.id ]: [ ...( prev[ user.id ] || [] ), response.data.message ],
-                } ) );
                 setIsSending ( false );
                 setMessage ( '' );
             } )
