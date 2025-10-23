@@ -1,52 +1,28 @@
 import { usePage } from "@inertiajs/react";
-import { CiCirclePlus } from "react-icons/ci";
 import { FaPowerOff, FaSearch } from "react-icons/fa";
 import { GiHamburgerMenu } from "react-icons/gi";
 import DefaultImage from '../assets/images/1053244.png';
-import Conversations from "@/Components/Conversations.jsx";
-import axios from "axios";
-import Create from "@/Pages/Conversations/Create.jsx";
-import { useState } from "react";
+import Users from "@/Components/Users.jsx";
 
 export default function Sidebar () {
-    const { props }                   = usePage ();
-    const [ showModal, setShowModal ] = useState ( false );
-    
-    function createNewConversation () {
-        axios.get ( '/conversations/create' )
-             .then ( ( response ) => {
-                 console.log ( response.data );
-             } )
-             .catch ( ( error ) => {
-                 console.log ( error );
-             } )
-    }
-    
-    const toggleModal = () => setShowModal ( !showModal );
+    const { props } = usePage ();
     
     return (
         <>
-            <Create
-                showModal={ showModal }
-                users={ props.users }
-                toggleModal={ toggleModal } />
             
             <div className="sidebar bg-dark vh-100 col-md-4">
                 <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-body">
                     <h3 className="mb-0">{ props.appName }</h3>
                     <div className="d-flex justify-content-end gap-3 align-items-center icons">
                         <img src={ DefaultImage } className="user-profile-image rounded-circle border border-bottom p-1"
-                             alt={ props.auth?.user?.name } />
-                        <CiCirclePlus
-                            onClick={ toggleModal }
-                            className="bg-dark-green rounded-circle p-1 new-chat-icon" />
+                             alt={ props.auth?.user?.name } title={ props.auth?.user?.name } />
                         <FaPowerOff className="bg-danger p-2 rounded-circle text-white new-chat-icon" />
                         <GiHamburgerMenu className="bg-body p-2 rounded-circle new-chat-icon" />
                     </div>
                 </div>
                 
                 <div
-                    className="d-flex justify-content-between align-items-center py-3 position-relative border-bottom border-body">
+                    className="d-flex justify-content-between align-items-center py-3 position-relative border-bottom border-body mb-3">
                     <div className="form-group input-group">
                         <input type="text" name="search" aria-label="Search"
                                aria-describedby="search" placeholder="Search for chats"
@@ -61,7 +37,7 @@ export default function Sidebar () {
                     </div>
                 </div>
                 
-                <Conversations />
+                <Users />
             </div>
         </>
     )

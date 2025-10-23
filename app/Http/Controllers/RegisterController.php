@@ -29,8 +29,10 @@
                 $user = $this -> service -> store ( $request );
                 DB ::commit ();
                 
-                if ( $user )
-                    return redirect () -> back () -> with ( 'success', 'Account created successfully' );
+                if ( $user ) {
+                    Auth ::login ( $user );
+                    return redirect () -> route ( 'conversations' );
+                }
                 else
                     return redirect () -> back () -> withInput () -> with ( 'error', 'Something went wrong. Please try again.' );
             }

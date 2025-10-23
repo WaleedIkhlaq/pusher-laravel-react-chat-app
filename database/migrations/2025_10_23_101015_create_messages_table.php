@@ -7,24 +7,24 @@
     return new class extends Migration {
         
         public function up (): void {
-            Schema ::create ( 'conversation_user_messages', function ( Blueprint $table ) {
+            Schema ::create ( 'messages', function ( Blueprint $table ) {
                 $table -> id ();
-                $table -> foreignId ( 'conversation_id' );
-                $table -> foreignId ( 'user_id' );
-                $table -> text ( 'message' ) -> nullable ();
-                $table -> json ( 'media' ) -> nullable ();
+                $table -> foreignId ( 'sender_id' );
+                $table -> foreignId ( 'receiver_id' );
+                $table -> text ( 'message' );
                 $table -> json ( 'attributes' ) -> nullable ();
+                $table -> dateTime ( 'read_at' ) -> nullable ();
                 $table -> timestamps ();
                 
                 $table
-                    -> foreign ( 'conversation_id' )
+                    -> foreign ( 'sender_id' )
                     -> references ( 'id' )
-                    -> on ( 'conversations' )
+                    -> on ( 'users' )
                     -> cascadeOnUpdate ()
                     -> cascadeOnDelete ();
                 
                 $table
-                    -> foreign ( 'user_id' )
+                    -> foreign ( 'receiver_id' )
                     -> references ( 'id' )
                     -> on ( 'users' )
                     -> cascadeOnUpdate ()
@@ -33,6 +33,6 @@
         }
         
         public function down (): void {
-            Schema ::dropIfExists ( 'conversation_user_messages' );
+            Schema ::dropIfExists ( 'messages' );
         }
     };
