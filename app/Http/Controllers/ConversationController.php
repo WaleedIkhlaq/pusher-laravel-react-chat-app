@@ -39,8 +39,9 @@
                 DB ::beginTransaction ();
                 $message = $this -> service -> store ( $request, $user );
                 DB ::commit ();
-
-//                broadcast ( new MessageSent ( $message ) ) -> toOthers ();
+                
+                $message -> load ( [ 'sender', 'receiver' ] );
+                broadcast ( new MessageSent ( $message ) ) -> toOthers ();
                 
                 return response () -> json ( [ 'message' => $message ] );
             }

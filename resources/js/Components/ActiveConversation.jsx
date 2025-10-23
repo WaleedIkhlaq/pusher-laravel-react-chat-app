@@ -3,6 +3,7 @@ import { GoDotFill } from "react-icons/go";
 import { useEffect, useRef, useState } from "react";
 import { FaPaperclip } from "react-icons/fa";
 import { usePage } from "@inertiajs/react";
+import { toast, ToastContainer } from 'react-toastify';
 
 export default function ActiveConversation () {
     
@@ -17,13 +18,51 @@ export default function ActiveConversation () {
     }
     
     useEffect ( () => {
-        scrollToBottom ();
         markMessagesRead ();
     }, [] );
     
+    useEffect ( () => {
+        scrollToBottom ()
+    }, [ messages ] )
+    
     function markMessagesRead () {
-        axios.post ( `/conversations/${ user?.id }/markMessagesRead` ).then ( r => console.log ( r ) );
+        axios.post ( `/conversations/${ user?.id }/markMessagesRead` ).then ();
     }
+    
+    useEffect ( () => {
+        const channel = Echo
+            .private ( `chat.${ auth?.user?.id }` )
+            .listen ( 'MessageSent', ( e ) => {
+                if (
+                    ( e.message.sender_id === user.id && e.message.receiver_id === auth.user.id ) ||
+                    ( e.message.receiver_id === user.id && e.message.sender_id === auth.user.id )
+                ) {
+                    setMessages ( ( prev ) => ( {
+                        ...prev,
+                        [ user.id ]: [ ...( prev[ user.id ] || [] ), e.message ],
+                    } ) );
+                }
+            } );
+        
+        Echo.join ( `online` )
+            .here ( ( users ) => {
+                // ...
+            } )
+            .joining ( ( user ) => {
+                toast ( `${ user.name } is now online` );
+            } )
+            .leaving ( ( user ) => {
+                toast ( `${ user.name } went offline` );
+            } )
+            .error ( ( error ) => {
+                console.error ( error );
+            } );
+        
+        return () => {
+            channel.stopListening ( 'MessageSent' );
+            Echo.leave ( `chat.${ auth?.user?.id }` );
+        };
+    }, [ user.id ] )
     
     function sendMessage ( e ) {
         e.preventDefault ();
@@ -46,9 +85,20 @@ export default function ActiveConversation () {
             } );
     }
     
-    
     return (
         <>
+            <ToastContainer
+                position="top-right"
+                autoClose={ 5000 }
+                hideProgressBar={ false }
+                newestOnTop={ false }
+                closeOnClick={ false }
+                rtl={ false }
+                pauseOnFocusLoss
+                draggable={ false }
+                pauseOnHover
+                theme="dark"
+            />
             <div className="row">
                 <div
                     className="d-flex flex-row justify-content-between align-items-center py-3 border-bottom border-dark bg-dark px-2">

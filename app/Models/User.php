@@ -31,13 +31,29 @@
         }
         
         public function getMessagesAttribute () {
-            return Message ::whereAny ( [ 'sender_id', 'receiver_id' ], $this -> id )
+            $user_id = auth () -> id ();
+            return Message ::where ( function ( $query ) use ( $user_id ) {
+                $query -> where ( 'sender_id', $user_id )
+                    -> where ( 'receiver_id', $this -> id );
+            } )
+                -> orWhere ( function ( $query ) use ( $user_id ) {
+                    $query -> where ( 'sender_id', $this -> id )
+                        -> where ( 'receiver_id', $user_id );
+                } )
                 -> with ( [ 'sender', 'receiver' ] )
                 -> get ();
         }
         
         public function getLastMessageAttribute () {
-            return Message ::whereAny ( [ 'sender_id', 'receiver_id' ], $this -> id )
+            $user_id = auth () -> id ();
+            return Message ::where ( function ( $query ) use ( $user_id ) {
+                $query -> where ( 'sender_id', $user_id )
+                    -> where ( 'receiver_id', $this -> id );
+            } )
+                -> orWhere ( function ( $query ) use ( $user_id ) {
+                    $query -> where ( 'sender_id', $this -> id )
+                        -> where ( 'receiver_id', $user_id );
+                } )
                 -> orderByDesc ( 'id' )
                 -> first ();
         }
