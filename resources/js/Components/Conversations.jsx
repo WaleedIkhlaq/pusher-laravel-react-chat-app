@@ -2,8 +2,9 @@ import { Link, usePage } from "@inertiajs/react";
 import DefaultImage from '../assets/images/1053244.png';
 import { LiaCheckDoubleSolid } from "react-icons/lia";
 import { useEffect, useState } from "react";
+import { GoDotFill } from "react-icons/go";
 
-export default function Conversations ( { conversations, activeConversation, setActiveConversation } ) {
+export default function Conversations ( { conversations, activeConversation, setActiveConversation, onlineUsers } ) {
     
     const { props } = usePage ();
     
@@ -23,8 +24,9 @@ export default function Conversations ( { conversations, activeConversation, set
     
     function formatTime ( timestamp ) {
         if ( !timestamp ) return '';
+        
         const date = new Date ( timestamp );
-        return date.toLocaleTimeString ( [], {
+        return date.toLocaleString ( 'en-US', {
             hour  : 'numeric',
             minute: '2-digit',
             hour12: true,
@@ -50,11 +52,24 @@ export default function Conversations ( { conversations, activeConversation, set
                                         : "bg-body"
                                 } px-3 mb-3 gap-4 text-white text-decoration-none` }
                             >
-                                <img
-                                    src={ DefaultImage }
-                                    alt="User"
-                                    className="user-image rounded-circle"
-                                />
+                                <div className="position-relative">
+                                    <img src={ DefaultImage } alt="User" className="user-image rounded-circle" />
+                                    {
+                                        ( () => {
+                                            const isOnline = onlineUsers?.some ( user => user.id === conversation?.other_participant?.id );
+                                            
+                                            return isOnline && (
+                                                <GoDotFill
+                                                    style={ {
+                                                        bottom: '-12px',
+                                                        right : '-9px',
+                                                    } }
+                                                    className="text-dark-green fs-2 position-absolute"
+                                                />
+                                            );
+                                        } ) ()
+                                    }
+                                </div>
                                 <div className="flex-1 flex-fill">
                                     <h5>
                                         {

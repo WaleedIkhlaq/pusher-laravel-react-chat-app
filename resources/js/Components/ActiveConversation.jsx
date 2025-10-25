@@ -5,7 +5,7 @@ import { FaPaperclip } from "react-icons/fa";
 import { usePage } from "@inertiajs/react";
 import { toast, ToastContainer } from 'react-toastify';
 
-export default function ActiveConversation ( { activeConversation, setActiveConversation, messages } ) {
+export default function ActiveConversation ( { activeConversation, setActiveConversation, messages, onlineUsers } ) {
     
     const { auth }                    = usePage ().props;
     const messagesEndRef              = useRef ( null );
@@ -52,7 +52,21 @@ export default function ActiveConversation ( { activeConversation, setActiveConv
                                         activeConversation?.user?.name
                                 }
                             </h5>
-                            <p className="mb-0 text-gray fs-14"><GoDotFill className="text-light-green" /> Online</p>
+                            {
+                                ( () => {
+                                    const isOnline = onlineUsers?.some ( user => user.id === activeConversation?.other_participant?.id );
+                                    
+                                    return isOnline ? (
+                                        <p className="mb-0 text-gray fs-14">
+                                            <GoDotFill className="text-light-green" /> Online
+                                        </p>
+                                    ) : (
+                                        <p className="mb-0 text-gray fs-14">
+                                            <GoDotFill className="text-gray" /> Offline
+                                        </p>
+                                    );
+                                } ) ()
+                            }
                         </div>
                     </div>
                 </div>

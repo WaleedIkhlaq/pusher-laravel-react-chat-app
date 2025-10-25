@@ -20,6 +20,12 @@
             return $this -> hasMany ( ConversationUser::class );
         }
         
+        public function other_participant (): HasOne {
+            return $this
+                -> hasOne ( ConversationUser::class )
+                -> where ( 'user_id', '!=', auth () -> id () );
+        }
+        
         public function messages (): HasMany {
             return $this -> hasMany ( ConversationUserMessage::class );
         }

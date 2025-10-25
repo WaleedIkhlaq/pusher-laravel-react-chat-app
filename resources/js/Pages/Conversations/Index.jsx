@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import Create from "@/Pages/Conversations/Create.jsx";
 import { Bounce, ToastContainer } from "react-toastify";
 import ActiveConversation from "@/Components/ActiveConversation.jsx";
+import messageSound from "@/assets/audio/new-notification-3-398649.mp3";
 
 function Index () {
     
@@ -16,6 +17,8 @@ function Index () {
     const [ conversations, setConversations ]           = useState ( props.conversations ?? [] );
     const [ messages, setMessages ]                     = useState ( {} );
     const [ activeConversation, setActiveConversation ] = useState ( null );
+    const [ onlineUsers, setOnlineUsers ]               = useState ( [] );
+    const audio                                         = new Audio ( messageSound );
     
     useEffect ( () => {
         
@@ -36,7 +39,6 @@ function Index () {
                 }
             } )
             .listen ( "ConversationUpdated", ( e ) => {
-                console.log ( 'conversation updated' );
                 const conversation = e.conversation;
                 setConversations ( ( prev ) => {
                     const updatedList = prev.map ( ( conv ) => conv.id === conversation.id ? conversation : conv );
@@ -47,7 +49,6 @@ function Index () {
             } )
             .listen ( "MessageSent", ( e ) => {
                 const message = e.message;
-                console.log ( 'Messaged added' );
                 setMessages ( ( prev ) => ( {
                     ...prev,
                     [ message.conversation_id ]: [
@@ -55,17 +56,25 @@ function Index () {
                         message,
                     ],
                 } ) );
+                
+                if ( message.user_id !== props?.auth?.user?.id )
+                    audio.play ();
             } );
         
         onlineChannel
             .here ( ( users ) => {
-                console.log ( 'user is here' );
+                setOnlineUsers ( users );
             } )
             .joining ( ( user ) => {
-                console.log ( 'user joined' );
+                setOnlineUsers ( ( prev ) => {
+                    if ( !prev.find ( ( u ) => u.id === user.id ) ) {
+                        return [ ...prev, user ];
+                    }
+                    return prev;
+                } );
             } )
             .leaving ( ( user ) => {
-                console.log ( 'user left' );
+                setOnlineUsers ( ( prev ) => prev.filter ( ( u ) => u.id !== user.id ) );
             } )
             .error ( ( error ) => {
                 console.error ( error );
@@ -134,6 +143,7 @@ function Index () {
                             conversations={ conversations }
                             activeConversation={ activeConversation }
                             setActiveConversation={ setActiveConversation }
+                            onlineUsers={ onlineUsers }
                         />
                     </div>
                     <div className="col-md-8">
@@ -155,6 +165,7 @@ function Index () {
                                     activeConversation={ activeConversation }
                                     setActiveConversation={ setActiveConversation }
                                     messages={ messages }
+                                    onlineUsers={ onlineUsers }
                                 />
                             )
                         }
