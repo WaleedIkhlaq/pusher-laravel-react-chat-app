@@ -19,13 +19,12 @@ function Index () {
     const [ activeConversation, setActiveConversation ] = useState ( null );
     const [ onlineUsers, setOnlineUsers ]               = useState ( [] );
     const [ searchText, setSearchText ]                 = useState ( '' );
+    const [ isTyping, setIsTyping ]                     = useState ( {} );
     const audio                                         = new Audio ( messageSound );
+    const userChannel                                   = Echo.private ( `user.${ props?.auth?.user?.id }` );
+    const onlineChannel                                 = Echo.join ( "online" );
     
     useEffect ( () => {
-        
-        const userChannel   = Echo.private ( `user.${ props?.auth?.user?.id }` );
-        const onlineChannel = Echo.join ( "online" );
-        
         userChannel
             .listen ( "ConversationCreated", ( e ) => {
                 const conversation = e.conversation;
@@ -50,6 +49,14 @@ function Index () {
                         ...( prev[ message.conversation_id ] || [] ),
                         message,
                     ],
+                } ) );
+                
+                setIsTyping ( prev => ( {
+                    ...prev,
+                    [ message?.conversation_id ]: {
+                        typing: false,
+                        user  : null
+                    }
                 } ) );
                 
                 if ( message.user_id !== props?.auth?.user?.id )
@@ -81,6 +88,22 @@ function Index () {
         };
         
     }, [] );
+    
+    useEffect ( () => {
+        if ( activeConversation !== null ) {
+            const conversationChannel = Echo.private ( `conversation.${ activeConversation?.id }` );
+            conversationChannel
+                .listenForWhisper ( 'typing', ( e ) => {
+                    setIsTyping ( prev => ( {
+                        ...prev,
+                        [ activeConversation.id ]: {
+                            typing: e.typing,
+                            user  : e.user
+                        }
+                    } ) );
+                } )
+        }
+    }, [ activeConversation?.id ] );
     
     useEffect ( () => {
         if ( activeConversation && activeConversation.id > 0 ) {
@@ -166,6 +189,8 @@ function Index () {
                                     setActiveConversation={ setActiveConversation }
                                     messages={ messages }
                                     onlineUsers={ onlineUsers }
+                                    isTyping={ isTyping }
+                                    setIsTyping={ setIsTyping }
                                 />
                             )
                         }

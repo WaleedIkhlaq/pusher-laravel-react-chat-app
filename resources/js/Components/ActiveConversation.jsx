@@ -4,13 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { FaPaperclip } from "react-icons/fa";
 import { usePage } from "@inertiajs/react";
 import { toast, ToastContainer } from 'react-toastify';
+import { TiMessageTyping } from "react-icons/ti";
+import { LuSend } from "react-icons/lu";
 
-export default function ActiveConversation ( { activeConversation, setActiveConversation, messages, onlineUsers } ) {
+export default function ActiveConversation ( {
+                                                 activeConversation,
+                                                 setActiveConversation,
+                                                 messages,
+                                                 onlineUsers,
+                                                 isTyping,
+                                                 setIsTyping
+                                             } ) {
     
     const { auth }                    = usePage ().props;
     const messagesEndRef              = useRef ( null );
     const [ isSending, setIsSending ] = useState ( false );
     const [ message, setMessage ]     = useState ( '' );
+    const conversationChannel         = Echo.private ( `conversation.${ activeConversation?.id }` );
     
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView ( { behavior: "smooth" } )
@@ -18,7 +28,16 @@ export default function ActiveConversation ( { activeConversation, setActiveConv
     
     useEffect ( () => {
         scrollToBottom ()
-    }, [ messages ] )
+    }, [ messages ] );
+    
+    function handleTyping ( e ) {
+        setMessage ( e.target.value );
+        
+        conversationChannel.whisper ( 'typing', {
+            user  : auth?.user,
+            typing: true,
+        } )
+    }
     
     function sendMessage ( e ) {
         e.preventDefault ();
@@ -53,26 +72,32 @@ export default function ActiveConversation ( { activeConversation, setActiveConv
                                 }
                             </h5>
                             {
-                                ( () => {
-                                    const isOnline = onlineUsers?.some ( user => user.id === activeConversation?.other_participant?.id );
-                                    
-                                    return isOnline ? (
+                                isTyping[ activeConversation.id ]?.typing &&
+                                isTyping[ activeConversation.id ]?.user?.id !== auth?.user?.id ? (
                                         <p className="mb-0 text-gray fs-14">
-                                            <GoDotFill className="text-light-green" /> Online
+                                            <TiMessageTyping className="text-light-green" /> typing
                                         </p>
-                                    ) : (
-                                        <p className="mb-0 text-gray fs-14">
-                                            <GoDotFill className="text-gray" /> Offline
-                                        </p>
-                                    );
-                                } ) ()
+                                    ) :
+                                    ( () => {
+                                        const isOnline = onlineUsers?.some ( user => user.id === activeConversation?.other_participant?.id );
+                                        
+                                        return isOnline ? (
+                                            <p className="mb-0 text-gray fs-14">
+                                                <GoDotFill className="text-light-green" /> Online
+                                            </p>
+                                        ) : (
+                                            <p className="mb-0 text-gray fs-14">
+                                                <GoDotFill className="text-gray" /> Offline
+                                            </p>
+                                        );
+                                    } ) ()
                             }
                         </div>
                     </div>
                 </div>
             </div>
             
-            <ul className="list-unstyled active-conversation overflow-auto my-4 px-2">
+            <ul className="list-unstyled active-conversation overflow-auto my-4 px-2 position-relative">
                 {
                     messages[ activeConversation?.id ] &&
                     messages[ activeConversation?.id ].length > 0 &&
@@ -114,13 +139,13 @@ export default function ActiveConversation ( { activeConversation, setActiveConv
                                    required={ true }
                                    value={ message }
                                    readOnly={ isSending }
-                                   onChange={ ( e ) => setMessage ( e.target.value ) }
+                                   onChange={ handleTyping }
                                    className={ `form-control bg-body text-gray` } />
                             <div className="input-group-prepend">
                                 <span className="input-group-text h-100 bg-body border-0"
                                       style={ { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } }
                                       id="search">
-                                    <FaPaperclip className="text-gray" />
+                                    <LuSend className="text-gray" />
                                 </span>
                             </div>
                         </div>
