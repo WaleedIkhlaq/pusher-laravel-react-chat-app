@@ -27,14 +27,8 @@
         Route ::get ( 'conversations', [ ConversationController::class, 'index' ] )
             -> name ( 'conversations' );
         
-        Route ::get ( 'conversations/{user}/messages', [ ConversationController::class, 'messages' ] )
-            -> name ( 'conversation.messages' );
-        
-        Route ::post ( 'conversations/{user}/send', [ ConversationController::class, 'send' ] )
-            -> name ( 'conversation.send' );
-        
-        Route ::post ( 'conversations/{user}/markMessagesRead', [ ConversationController::class, 'markMessagesRead' ] )
-            -> name ( 'conversation.markMessagesRead' );
+        Route ::post ( 'conversations/{user}/create', [ ConversationController::class, 'create' ] )
+            -> name ( 'conversations.create' );
         
         Route ::post ( 'logout', [ LogoutController::class, 'logout' ] )
             -> name ( 'logout' );

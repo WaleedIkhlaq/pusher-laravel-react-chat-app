@@ -3,7 +3,7 @@
     use Illuminate\Support\Facades\Broadcast;
     use App\Models\User;
     
-    Broadcast ::channel ( 'chat.{id}', function ( User $user, int $id ) {
+    Broadcast ::channel ( 'user.{id}', function ( User $user, int $id ) {
         return $user -> id === $id;
     } );
     

@@ -3,22 +3,25 @@
     namespace App\Services;
     
     use App\Models\User;
+    use Illuminate\Database\Eloquent\Collection;
+    use function PHPUnit\TestFixture\func;
     
     class UserService {
         
-        public function all () {
+        public function all (): Collection {
             return User ::where ( 'id', '!=', auth () -> id () )
-                -> get ()
-                -> map ( function ( $user ) {
-                    return [
-                        'id'          => $user -> id,
-                        'name'        => $user -> name,
-                        'email'       => $user -> email,
-                        'lastMessage' => $user -> last_message
-                    ];
+                -> whereNotIn ( 'id', function ( $query ) {
+                    $query
+                        -> select ( 'user_id' )
+                        -> from ( 'conversation_users' )
+                        -> whereIn ( 'conversation_id', function ( $query ) {
+                            $query
+                                -> select ( 'id' )
+                                -> from ( 'conversations' )
+                                -> where ( [ 'created_by' => auth () -> id () ] );
+                        } );
                 } )
-                -> sortByDesc ( 'lastMessage' )
-                -> values ();
+                -> get ();
         }
         
     }
