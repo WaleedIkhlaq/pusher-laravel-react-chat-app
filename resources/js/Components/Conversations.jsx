@@ -4,18 +4,23 @@ import { LiaCheckDoubleSolid } from "react-icons/lia";
 import { useEffect, useState } from "react";
 import { GoDotFill } from "react-icons/go";
 
-export default function Conversations ( { conversations, activeConversation, setActiveConversation, onlineUsers } ) {
+export default function Conversations ( {
+                                            conversations,
+                                            activeConversation,
+                                            setActiveConversation,
+                                            onlineUsers,
+                                            searchText
+                                        } ) {
     
-    const { props } = usePage ();
+    const { props }       = usePage ();
+    const conversationsEl = document.querySelectorAll ( ".conversation" );
     
-    // const conversations = document.querySelectorAll ( ".conversation" );
-    //
-    // useEffect ( () => {
-    //     conversations.forEach ( ( user ) => {
-    //         const name         = user.textContent.toLowerCase ();
-    //         user.style.display = name.includes ( search ) ? "block" : "none";
-    //     } );
-    // }, [ search ] );
+    useEffect ( () => {
+        conversationsEl.forEach ( ( user ) => {
+            const name         = user.textContent.toLowerCase ();
+            user.style.display = name.includes ( searchText ) ? "block" : "none";
+        } );
+    }, [ searchText ] );
     
     function handleActiveConversation ( conversation ) {
         if ( activeConversation?.id !== conversation.id )
@@ -58,7 +63,7 @@ export default function Conversations ( { conversations, activeConversation, set
                                         ( () => {
                                             const isOnline = onlineUsers?.some ( user => user.id === conversation?.other_participant?.id );
                                             
-                                            return isOnline && (
+                                            return isOnline ? (
                                                 <GoDotFill
                                                     style={ {
                                                         bottom: '-12px',
@@ -66,7 +71,15 @@ export default function Conversations ( { conversations, activeConversation, set
                                                     } }
                                                     className="text-dark-green fs-2 position-absolute"
                                                 />
-                                            );
+                                            ) : (
+                                                <GoDotFill
+                                                    style={ {
+                                                        bottom: '-12px',
+                                                        right : '-9px',
+                                                    } }
+                                                    className="text-gray fs-2 position-absolute"
+                                                />
+                                            )
                                         } ) ()
                                     }
                                 </div>

@@ -18,6 +18,7 @@ function Index () {
     const [ messages, setMessages ]                     = useState ( {} );
     const [ activeConversation, setActiveConversation ] = useState ( null );
     const [ onlineUsers, setOnlineUsers ]               = useState ( [] );
+    const [ searchText, setSearchText ]                 = useState ( '' );
     const audio                                         = new Audio ( messageSound );
     
     useEffect ( () => {
@@ -29,14 +30,8 @@ function Index () {
             .listen ( "ConversationCreated", ( e ) => {
                 const conversation = e.conversation;
                 
-                if ( conversation && conversation.id > 0 ) {
-                    setConversations ( ( prev ) => {
-                        const updatedList = prev.map ( ( conv ) => conv.id === conversation.id ? conversation : conv );
-                        
-                        return updatedList
-                            .sort ( ( a, b ) => new Date ( getConversationTimestamp ( b ) ) - new Date ( getConversationTimestamp ( a ) ) );
-                    } );
-                }
+                if ( conversation && conversation.id > 0 )
+                    setConversations ( prev => [ conversation, ...prev ] );
             } )
             .listen ( "ConversationUpdated", ( e ) => {
                 const conversation = e.conversation;
@@ -103,7 +98,6 @@ function Index () {
         }
     }, [ activeConversation?.id ] )
     
-    
     function getConversationTimestamp ( conversation ) {
         return conversation.last_message?.created_at || conversation.created_at;
     }
@@ -137,13 +131,19 @@ function Index () {
             <div className="container-fluid">
                 <div className="row">
                     <div className="sidebar bg-dark vh-100 col-md-4">
-                        <Topbar toggleModal={ toggleModal } />
-                        <Search />
+                        <Topbar
+                            toggleModal={ toggleModal } />
+                        
+                        <Search
+                            searchText={ searchText }
+                            setSearchText={ setSearchText } />
+                        
                         <Conversations
                             conversations={ conversations }
                             activeConversation={ activeConversation }
                             setActiveConversation={ setActiveConversation }
                             onlineUsers={ onlineUsers }
+                            searchText={ searchText }
                         />
                     </div>
                     <div className="col-md-8">

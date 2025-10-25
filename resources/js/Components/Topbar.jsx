@@ -18,7 +18,6 @@ export default function Topbar ( { toggleModal } ) {
                     <Link href="/logout" method="post" className="bg-transparent shadow-none p-0 border-0">
                         <FaPowerOff className="bg-danger p-2 rounded-circle text-white new-chat-icon" />
                     </Link>
-                    <GiHamburgerMenu className="bg-body p-2 rounded-circle new-chat-icon" />
                 </div>
             </div>
         </>
