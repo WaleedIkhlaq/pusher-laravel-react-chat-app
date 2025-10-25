@@ -7,6 +7,6 @@
         return $user -> id === $id;
     } );
     
-    Broadcast ::channel ( 'online', function ( \App\Models\User $user ) {
+    Broadcast ::channel ( 'online', function ( User $user ) {
         return $user;
     } );

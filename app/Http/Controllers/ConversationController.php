@@ -3,13 +3,16 @@
     namespace App\Http\Controllers;
     
     use App\Http\Requests\ConversationFormRequest;
+    use App\Models\Conversation;
     use App\Models\User;
     use App\Services\ConversationService;
+    use App\Services\ConversationUserMessageService;
     use App\Services\ConversationUserService;
     use App\Services\UserService;
     use Dflydev\DotAccessData\Exception\DataException;
     use Illuminate\Http\JsonResponse;
     use Illuminate\Http\RedirectResponse;
+    use Illuminate\Http\Request;
     use Illuminate\Support\Facades\DB;
     use Illuminate\Support\Facades\Log;
     use Inertia\Inertia;
@@ -18,9 +21,10 @@
     class ConversationController extends Controller {
         
         public function __construct (
-            protected UserService             $userService,
-            protected ConversationService     $service,
-            protected ConversationUserService $conversationUserService
+            protected UserService                    $userService,
+            protected ConversationService            $service,
+            protected ConversationUserService        $conversationUserService,
+            protected ConversationUserMessageService $conversationUserMessageService
         ) {
             //
         }
@@ -31,7 +35,7 @@
             return Inertia ::render ( 'Conversations/Index', compact ( 'users', 'conversations' ) );
         }
         
-        public function create ( ConversationFormRequest $request, User $user ): JsonResponse | RedirectResponse {
+        public function create ( ConversationFormRequest $request, User $user ): JsonResponse {
             try {
                 DB ::beginTransaction ();
                 $conversation = $this -> service -> store ( $user );
@@ -43,26 +47,28 @@
             catch ( \Exception | DataException $e ) {
                 DB ::rollBack ();
                 Log ::critical ( $e );
-                return redirect () -> back () -> withErrors ( $e -> getMessage () ) -> withinput ();
+                return response () -> json ( [ 'error' => $e -> getMessage () ], 500 );
             }
         }
-
-//        public function send ( Request $request, User $user ): JsonResponse | RedirectResponse {
-//            try {
-//                DB ::beginTransaction ();
-//                $message = $this -> service -> store ( $request, $user );
-//                DB ::commit ();
-//
-//                $message -> load ( [ 'sender', 'receiver' ] );
-//                MessageSent ::dispatch ( $message );
-//
-//                return response () -> json ( [ 'message' => $message ] );
-//            }
-//            catch ( \Exception | DataException $e ) {
-//                DB ::rollBack ();
-//                Log ::critical ( $e );
-//                return redirect () -> back () -> withErrors ( $e -> getMessage () ) -> withinput ();
-//            }
-//        }
-    
+        
+        public function messages ( Conversation $conversation ): JsonResponse {
+            $conversation -> load ( 'messages.user' );
+            return response () -> json ( $conversation );
+        }
+        
+        public function send_message ( Request $request, Conversation $conversation ): JsonResponse {
+            try {
+                DB ::beginTransaction ();
+                $message = $this -> conversationUserMessageService -> store ( $request, $conversation );
+                DB ::commit ();
+                
+                return response () -> json ( [ 'message' => $message ] );
+            }
+            catch ( \Exception | DataException $e ) {
+                DB ::rollBack ();
+                Log ::critical ( $e );
+                return response () -> json ( [ 'error' => $e -> getMessage () ], 500 );
+            }
+        }
+        
     }

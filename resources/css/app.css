@@ -122,7 +122,7 @@ body {
     cursor : pointer;
 }
 
-.conversations li:hover a {
+.conversations li:hover .conversation {
     background-color : #317061 !important;
     color            : #FFFFFF !important;
 }

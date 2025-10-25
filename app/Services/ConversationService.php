@@ -3,11 +3,11 @@
     namespace App\Services;
     
     use App\Models\Conversation;
-    use App\Models\ConversationUser;
+    use Illuminate\Support\Facades\DB;
     
     class ConversationService {
         
-        public function  conversations () {
+        public function conversations () {
             return Conversation ::whereIn ( 'id', function ( $query ) {
                 $query
                     -> select ( 'conversation_id' )
@@ -15,7 +15,8 @@
                     -> where ( [ 'user_id' => auth () -> id () ] );
             } )
                 -> with ( [ 'lastMessage', 'user' ] )
-                -> latest ()
+                -> withMax ( 'messages', 'created_at' )
+                -> orderByDesc ( DB ::raw ( 'COALESCE(messages_max_created_at, chat_conversations.created_at)' ) )
                 -> get ();
         }
         

@@ -30,6 +30,12 @@
         Route ::post ( 'conversations/{user}/create', [ ConversationController::class, 'create' ] )
             -> name ( 'conversations.create' );
         
+        Route ::get ( 'conversations/{conversation}/messages', [ ConversationController::class, 'messages' ] )
+            -> name ( 'conversations.messages' );
+        
+        Route ::post ( 'conversations/{conversation}/send_message', [ ConversationController::class, 'send_message' ] )
+            -> name ( 'conversations.send_message' );
+        
         Route ::post ( 'logout', [ LogoutController::class, 'logout' ] )
             -> name ( 'logout' );
         

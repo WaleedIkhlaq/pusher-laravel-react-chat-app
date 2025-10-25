@@ -3,7 +3,7 @@ import DefaultImage from '../assets/images/1053244.png';
 import { LiaCheckDoubleSolid } from "react-icons/lia";
 import { useEffect, useState } from "react";
 
-export default function Conversations ( { conversations } ) {
+export default function Conversations ( { conversations, activeConversation, setActiveConversation } ) {
     
     const { props } = usePage ();
     
@@ -16,6 +16,21 @@ export default function Conversations ( { conversations } ) {
     //     } );
     // }, [ search ] );
     
+    function handleActiveConversation ( conversation ) {
+        if ( activeConversation?.id !== conversation.id )
+            setActiveConversation ( conversation );
+    }
+    
+    function formatTime ( timestamp ) {
+        if ( !timestamp ) return '';
+        const date = new Date ( timestamp );
+        return date.toLocaleTimeString ( [], {
+            hour  : 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        } );
+    }
+    
     return (
         <>
             <ul
@@ -26,11 +41,11 @@ export default function Conversations ( { conversations } ) {
                     conversations &&
                     conversations.length > 0 &&
                     conversations.map ( ( conversation, index ) => (
-                        <li key={ index } className="conversation">
-                            <Link
-                                href={ `/conversations/${ conversation.id }/messages` }
-                                className={ `d-flex flex-row justify-content-between align-items-center py-3 ${
-                                    conversation.id === props?.conversation?.id
+                        <li key={ index } className="conversation"
+                            onClick={ () => handleActiveConversation ( conversation ) }>
+                            <div
+                                className={ `d-flex flex-row justify-content-between conversation align-items-center py-3 ${
+                                    conversation.id === activeConversation?.id
                                         ? "bg-dark-green"
                                         : "bg-body"
                                 } px-3 mb-3 gap-4 text-white text-decoration-none` }
@@ -50,32 +65,32 @@ export default function Conversations ( { conversations } ) {
                                     </h5>
                                     <p
                                         className={ `mb-0 fs-14 ${
-                                            conversation.id === props?.conversation?.id
+                                            conversation.id === activeConversation?.id
                                                 ? "bg-text-white"
                                                 : "text-gray"
                                         }` }
                                     >
-                                        { conversation?.lastMessage?.message ?? "Send a new message" }
+                                        { conversation?.last_message?.message ?? "Send a new message" }
                                     </p>
                                 </div>
                                 <div className="d-flex flex-column justify-content-between align-items-end gap-2">
-                                    { conversation?.lastMessage && (
+                                    { conversation?.last_message && (
                                         <>
                                             <p
                                                 className={ `mb-0 ${
-                                                    conversation.id === props?.conversation?.id
+                                                    conversation.id === activeConversation?.id
                                                         ? "bg-text-white"
                                                         : "text-gray"
                                                 } fs-14 fst-italic` }
                                             >
-                                                { conversation?.lastMessage?.created_at }
+                                                { formatTime ( conversation?.last_message?.created_at ) }
                                             </p>
                                             
                                             <LiaCheckDoubleSolid className="text-gray" />
                                         </>
                                     ) }
                                 </div>
-                            </Link>
+                            </div>
                         </li>
                     ) )
                 }

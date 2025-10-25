@@ -5,11 +5,10 @@ import { FaPaperclip } from "react-icons/fa";
 import { usePage } from "@inertiajs/react";
 import { toast, ToastContainer } from 'react-toastify';
 
-export default function ActiveConversation () {
+export default function ActiveConversation ( { activeConversation, setActiveConversation, messages } ) {
     
-    const { user, auth }              = usePage ().props;
+    const { auth }                    = usePage ().props;
     const messagesEndRef              = useRef ( null );
-    const [ messages, setMessages ]   = useState ( user?.messages ? { [ user?.id ]: user?.messages } : [] );
     const [ isSending, setIsSending ] = useState ( false );
     const [ message, setMessage ]     = useState ( '' );
     
@@ -18,57 +17,14 @@ export default function ActiveConversation () {
     }
     
     useEffect ( () => {
-        markMessagesRead ();
-    }, [] );
-    
-    useEffect ( () => {
         scrollToBottom ()
     }, [ messages ] )
-    
-    function markMessagesRead () {
-        axios.post ( `/conversations/${ user?.id }/markMessagesRead` ).then ();
-    }
-    
-    useEffect ( () => {
-        const channel = Echo
-            .private ( `chat.${ auth?.user?.id }` )
-            .listen ( 'MessageSent', ( e ) => {
-                if (
-                    ( e.message.sender_id === user.id && e.message.receiver_id === auth.user.id ) ||
-                    ( e.message.receiver_id === user.id && e.message.sender_id === auth.user.id )
-                ) {
-                    setMessages ( ( prev ) => ( {
-                        ...prev,
-                        [ user.id ]: [ ...( prev[ user.id ] || [] ), e.message ],
-                    } ) );
-                }
-            } );
-        
-        Echo.join ( `online` )
-            .here ( ( users ) => {
-                // ...
-            } )
-            .joining ( ( user ) => {
-                toast ( `${ user.name } is now online` );
-            } )
-            .leaving ( ( user ) => {
-                toast ( `${ user.name } went offline` );
-            } )
-            .error ( ( error ) => {
-                console.error ( error );
-            } );
-        
-        return () => {
-            channel.stopListening ( 'MessageSent' );
-            Echo.leave ( `chat.${ auth?.user?.id }` );
-        };
-    }, [ user.id ] )
     
     function sendMessage ( e ) {
         e.preventDefault ();
         setIsSending ( true );
         axios
-            .post ( `/conversations/${ user?.id }/send`, {
+            .post ( `/conversations/${ activeConversation?.id }/send_message`, {
                 message: message,
             } )
             .then ( function ( response ) {
@@ -83,25 +39,19 @@ export default function ActiveConversation () {
     
     return (
         <>
-            <ToastContainer
-                position="top-right"
-                autoClose={ 5000 }
-                hideProgressBar={ false }
-                newestOnTop={ false }
-                closeOnClick={ false }
-                rtl={ false }
-                pauseOnFocusLoss
-                draggable={ false }
-                pauseOnHover
-                theme="dark"
-            />
             <div className="row">
                 <div
                     className="d-flex flex-row justify-content-between align-items-center py-3 border-bottom border-dark bg-dark px-2">
                     <div className="d-flex flex-row justify-content-between align-items-center gap-3">
                         <img src={ DefaultImage } alt="Default Image" className="user-image rounded-circle" />
                         <div className="d-flex flex-column justify-content-center align-items-start gap-1">
-                            <h5 className="mb-0">{ user.name }</h5>
+                            <h5 className="mb-0">
+                                {
+                                    activeConversation.created_by === auth?.user?.id ?
+                                        activeConversation.friendly_name :
+                                        activeConversation?.user?.name
+                                }
+                            </h5>
                             <p className="mb-0 text-gray fs-14"><GoDotFill className="text-light-green" /> Online</p>
                         </div>
                     </div>
@@ -110,19 +60,19 @@ export default function ActiveConversation () {
             
             <ul className="list-unstyled active-conversation overflow-auto my-4 px-2">
                 {
-                    messages[ user?.id ] &&
-                    messages[ user?.id ].length > 0 &&
-                    messages[ user?.id ].map ( ( message, index ) => (
-                        <li className={ `d-flex flex-column justify-content-between gap-2 mb-4 ${ message.sender_id === auth?.user?.id ? 'align-items-end' : 'align-items-baseline' }` }
+                    messages[ activeConversation?.id ] &&
+                    messages[ activeConversation?.id ].length > 0 &&
+                    messages[ activeConversation?.id ].map ( ( message, index ) => (
+                        <li className={ `d-flex flex-column justify-content-between gap-2 mb-4 ${ message.user_id === auth?.user?.id ? 'align-items-end' : 'align-items-baseline' }` }
                             key={ index }>
                             <div className="d-flex flex-row justify-content-start align-items-center gap-2">
                                 <img src={ DefaultImage } alt="CiCirclePlus"
                                      className="user-conversation-image rounded-circle border border-2" />
                                 <span className="fs-14 text-gray">
                                     {
-                                        message.sender_id === auth?.user?.id ?
+                                        message.user_id === auth?.user?.id ?
                                             'You' :
-                                            message?.sender?.name
+                                            message?.user?.name
                                     }
                                 </span>
                             </div>

@@ -13,16 +13,16 @@
     use Illuminate\Foundation\Events\Dispatchable;
     use Illuminate\Queue\SerializesModels;
     
-    class MessageSent implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldRescue {
+    class ConversationUpdated implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldRescue {
         use Dispatchable, InteractsWithSockets, SerializesModels;
         
-        public function __construct ( public $message ) {
-            $this -> message -> load ( [ 'user' ] );
+        public function __construct ( public $conversation ) {
+            $this -> conversation -> load ( [ 'user', 'lastMessage' ] );
         }
         
         public function broadcastOn (): array {
             return [
-                ...$this -> message -> conversation -> participants -> map (
+                ...$this -> conversation -> participants -> map (
                     fn ( $participant ) => new PrivateChannel( 'user.' . $participant -> user_id )
                 ) -> toArray (),
             ];
