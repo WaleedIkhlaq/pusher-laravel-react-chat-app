@@ -16,8 +16,15 @@
             foreach ( $files as $file ) {
                 $extension       = $file -> getClientOriginalExtension ();
                 $fileNameToStore = Str ::uuid () . '-' . time () . '.' . $extension;
+                $mimeType        = $file -> getMimeType ();
+                $fileSize        = $file -> getSize ();
                 $url             = $file -> storeAs ( $path, $fileNameToStore );
-                $filesArray[]    = asset ( $url );
+                $filesArray[]    = [
+                    'file_name' => $fileNameToStore,
+                    'mime_type' => $mimeType,
+                    'path'      => asset ( $url ),
+                    'size'      => $fileSize,
+                ];
             }
             
             return $filesArray;

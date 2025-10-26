@@ -17,7 +17,7 @@
         
         public function send_files ( $request, $conversation ) {
             $files = ( new GeneralHelper() )
-                -> upload ( $request, '/uploads/conversations/' . $conversation -> id );
+                -> upload ( $request, './uploads/conversations/' );
             
             return ConversationUserMessage :: create ( [
                                                            'conversation_id' => $conversation -> id,

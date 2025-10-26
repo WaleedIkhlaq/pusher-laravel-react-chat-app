@@ -2,7 +2,7 @@ import DefaultImage from '../assets/images/1053244.png';
 import { GoDotFill } from "react-icons/go";
 import { useEffect, useRef, useState } from "react";
 import { FaPaperclip } from "react-icons/fa";
-import { usePage } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { toast, ToastContainer } from 'react-toastify';
 import { TiMessageTyping } from "react-icons/ti";
 import { LuSend } from "react-icons/lu";
@@ -163,26 +163,60 @@ export default function ActiveConversation ( {
                                     { message.message && <p className="mb-2">{ message.message }</p> }
                                     
                                     { Array.isArray ( mediaFiles ) && mediaFiles.length > 0 && (
-                                        <div className="d-flex flex-column gap-2">
+                                        <div className="d-flex flex-row gap-2">
                                             { mediaFiles.map ( ( file, i ) => {
                                                 const fileName = "File Attached";
-                                                const filePath =
-                                                          typeof file === "string" ? file : file.path;
+                                                const filePath = file.path;
+                                                const fileType = file.mime_type;
                                                 
-                                                return (
-                                                    <div key={ i }
-                                                         className="d-flex justify-content-between align-items-center bg-secondary rounded p-2 text-white">
-                                                            <span className="text-truncate me-2">
-                                                                <FaPaperclip className="text-white fs-14 me-1" />
-                                                                { fileName }
-                                                            </span>
-                                                        <a href={ filePath } download target="_blank"
-                                                           rel="noopener noreferrer"
-                                                           className="btn btn-sm bg-light-green text-black border-0">
-                                                            Download
+                                                const isImage = fileType.startsWith ( 'image/' );
+                                                const isVideo = fileType.startsWith ( 'video/' );
+                                                
+                                                if ( isImage ) {
+                                                    return (
+                                                        <a href={ filePath } key={ i } target="_blank"
+                                                              rel="noopener noreferrer">
+                                                            <img
+                                                                key={ i }
+                                                                src={ filePath }
+                                                                alt={ fileName }
+                                                                className="rounded-3 border border-secondary"
+                                                                style={ {
+                                                                    maxWidth : '150px',
+                                                                    maxHeight: '150px',
+                                                                    objectFit: 'cover'
+                                                                } }
+                                                            />
                                                         </a>
-                                                    </div>
-                                                );
+                                                    );
+                                                }
+                                                else if ( isVideo ) {
+                                                    return (
+                                                        <video
+                                                            key={ i }
+                                                            controls
+                                                            className="rounded-3 border border-secondary"
+                                                            style={ { maxWidth: '150px', maxHeight: '150px' } }
+                                                        >
+                                                            <source src={ filePath } type={ mime } />
+                                                            Your browser does not support the video tag.
+                                                        </video>
+                                                    );
+                                                }
+                                                else {
+                                                    return (
+                                                        <div key={ i } className="d-flex align-items-center gap-2">
+                                                            <span className="text-light">📎 File attached</span>
+                                                            <a
+                                                                href={ filePath }
+                                                                download={ fileName }
+                                                                className="btn btn-sm btn-outline-light"
+                                                            >
+                                                                Download
+                                                            </a>
+                                                        </div>
+                                                    );
+                                                }
                                             } ) }
                                         </div>
                                     ) }
