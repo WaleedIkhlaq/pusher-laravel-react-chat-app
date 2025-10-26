@@ -11,7 +11,6 @@
     use App\Services\UserService;
     use Dflydev\DotAccessData\Exception\DataException;
     use Illuminate\Http\JsonResponse;
-    use Illuminate\Http\RedirectResponse;
     use Illuminate\Http\Request;
     use Illuminate\Support\Facades\DB;
     use Illuminate\Support\Facades\Log;
@@ -60,6 +59,21 @@
             try {
                 DB ::beginTransaction ();
                 $message = $this -> conversationUserMessageService -> store ( $request, $conversation );
+                DB ::commit ();
+                
+                return response () -> json ( [ 'message' => $message ] );
+            }
+            catch ( \Exception | DataException $e ) {
+                DB ::rollBack ();
+                Log ::critical ( $e );
+                return response () -> json ( [ 'error' => $e -> getMessage () ], 500 );
+            }
+        }
+        
+        public function send_files ( Request $request, Conversation $conversation ): JsonResponse {
+            try {
+                DB ::beginTransaction ();
+                $message = $this -> conversationUserMessageService -> send_files ( $request, $conversation );
                 DB ::commit ();
                 
                 return response () -> json ( [ 'message' => $message ] );

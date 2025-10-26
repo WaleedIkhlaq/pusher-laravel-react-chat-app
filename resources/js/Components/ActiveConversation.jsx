@@ -6,6 +6,7 @@ import { usePage } from "@inertiajs/react";
 import { toast, ToastContainer } from 'react-toastify';
 import { TiMessageTyping } from "react-icons/ti";
 import { LuSend } from "react-icons/lu";
+import { Button, Modal } from "react-bootstrap";
 
 export default function ActiveConversation ( {
                                                  activeConversation,
@@ -16,11 +17,26 @@ export default function ActiveConversation ( {
                                                  setIsTyping
                                              } ) {
     
-    const { auth }                    = usePage ().props;
-    const messagesEndRef              = useRef ( null );
-    const [ isSending, setIsSending ] = useState ( false );
-    const [ message, setMessage ]     = useState ( '' );
-    const conversationChannel         = Echo.private ( `conversation.${ activeConversation?.id }` );
+    const { auth }                            = usePage ().props;
+    const messagesEndRef                      = useRef ( null );
+    const [ isSending, setIsSending ]         = useState ( false );
+    const [ message, setMessage ]             = useState ( '' );
+    const [ selectedFiles, setSelectedFiles ] = useState ( [] );
+    const [ showFileModal, setShowFileModal ] = useState ( false );
+    const fileInputRef                        = useRef ( null );
+    const conversationChannel                 = Echo.private ( `conversation.${ activeConversation?.id }` );
+    
+    const openFilePicker = () => fileInputRef.current.click ();
+    
+    const handleFilesSelected = ( e ) => {
+        const files = Array.from ( e.target.files );
+        setSelectedFiles ( ( prev ) => [ ...prev, ...files ] );
+        setShowFileModal ( true );
+    };
+    
+    const removeFile = ( index ) => {
+        setSelectedFiles ( ( prev ) => prev.filter ( ( _, i ) => i !== index ) );
+    };
     
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView ( { behavior: "smooth" } )
@@ -54,6 +70,29 @@ export default function ActiveConversation ( {
                 alert ( error?.response?.data );
                 setIsSending ( false );
             } );
+    }
+    
+    const sendFiles = async () => {
+        if ( selectedFiles.length === 0 ) return;
+        
+        const formData = new FormData ();
+        selectedFiles.forEach ( ( file ) => formData.append ( "files[]", file ) );
+        
+        setIsSending ( true );
+        try {
+            await axios
+                .post ( `/conversations/${ activeConversation?.id }/send_files`, formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                } );
+            setSelectedFiles ( [] );
+            setShowFileModal ( false );
+        }
+        catch ( error ) {
+            alert ( error?.response?.data || "Failed to send files" );
+        }
+        finally {
+            setIsSending ( false );
+        }
     }
     
     return (
@@ -101,26 +140,58 @@ export default function ActiveConversation ( {
                 {
                     messages[ activeConversation?.id ] &&
                     messages[ activeConversation?.id ].length > 0 &&
-                    messages[ activeConversation?.id ].map ( ( message, index ) => (
-                        <li className={ `d-flex flex-column justify-content-between gap-2 mb-4 ${ message.user_id === auth?.user?.id ? 'align-items-end' : 'align-items-baseline' }` }
-                            key={ index }>
-                            <div className="d-flex flex-row justify-content-start align-items-center gap-2">
-                                <img src={ DefaultImage } alt="CiCirclePlus"
-                                     className="user-conversation-image rounded-circle border border-2" />
-                                <span className="fs-14 text-gray">
-                                    {
-                                        message.user_id === auth?.user?.id ?
-                                            'You' :
-                                            message?.user?.name
-                                    }
-                                </span>
-                            </div>
-                            <div className="bg-dark px-2 py-2 rounded-3 border border-dark">
-                                <p className="mb-0">{ message.message }</p>
-                            </div>
-                        </li>
-                    ) )
+                    messages[ activeConversation?.id ].map ( ( message, index ) => {
+                        const mediaFiles = message.media ? JSON.parse ( message.media ) : [];
+                        
+                        return (
+                            <li className={ `d-flex flex-column justify-content-between gap-2 mb-4 ${
+                                message.user_id === auth?.user?.id
+                                    ? "align-items-end"
+                                    : "align-items-baseline"
+                            }` }
+                                key={ index }>
+                                
+                                <div className="d-flex flex-row justify-content-start align-items-center gap-2">
+                                    <img src={ DefaultImage } alt="user"
+                                         className="user-conversation-image rounded-circle border border-2" />
+                                    <span className="fs-14 text-gray">
+                                        { message.user_id === auth?.user?.id ? "You" : message?.user?.name }
+                                    </span>
+                                </div>
+                                
+                                <div className="bg-dark px-3 py-2 rounded-3 border border-dark text-white">
+                                    { message.message && <p className="mb-2">{ message.message }</p> }
+                                    
+                                    { Array.isArray ( mediaFiles ) && mediaFiles.length > 0 && (
+                                        <div className="d-flex flex-column gap-2">
+                                            { mediaFiles.map ( ( file, i ) => {
+                                                const fileName = "File Attached";
+                                                const filePath =
+                                                          typeof file === "string" ? file : file.path;
+                                                
+                                                return (
+                                                    <div key={ i }
+                                                         className="d-flex justify-content-between align-items-center bg-secondary rounded p-2 text-white">
+                                                            <span className="text-truncate me-2">
+                                                                <FaPaperclip className="text-white fs-14 me-1" />
+                                                                { fileName }
+                                                            </span>
+                                                        <a href={ filePath } download target="_blank"
+                                                           rel="noopener noreferrer"
+                                                           className="btn btn-sm bg-light-green text-black border-0">
+                                                            Download
+                                                        </a>
+                                                    </div>
+                                                );
+                                            } ) }
+                                        </div>
+                                    ) }
+                                </div>
+                            </li>
+                        );
+                    } )
                 }
+                
                 <div ref={ messagesEndRef }></div>
             </ul>
             
@@ -143,15 +214,57 @@ export default function ActiveConversation ( {
                                    className={ `form-control bg-body text-gray` } />
                             <div className="input-group-prepend">
                                 <span className="input-group-text h-100 bg-body border-0"
-                                      style={ { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 } }
-                                      id="search">
-                                    <LuSend className="text-gray" />
+                                      style={ { borderTopLeftRadius: 0, borderBottomLeftRadius: 0, cursor: 'pointer' } }
+                                      onClick={ openFilePicker }>
+                                    <FaPaperclip className="text-gray" />
                                 </span>
                             </div>
                         </div>
+                        
+                        <input
+                            type="file"
+                            ref={ fileInputRef }
+                            multiple
+                            onChange={ handleFilesSelected }
+                            style={ { display: "none" } }
+                        />
                     </form>
                 </div>
             </div>
+            
+            <Modal size="lg" show={ showFileModal } onHide={ () => setShowFileModal ( false ) }
+                   backdrop="static" keyboard={ false } className="border-0">
+                <Modal.Header closeButton className="text-white border-body bg-dark">
+                    <Modal.Title>Selected Files</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="text-gray bg-dark">
+                    { selectedFiles.length === 0 ? (
+                        <p>No files selected.</p>
+                    ) : (
+                        <ul className="list-group bg-dark">
+                            {
+                                selectedFiles.map ( ( file, index ) => (
+                                    <li key={ index }
+                                        className="list-group-item d-flex justify-content-between align-items-center bg-secondary text-white border-0 mb-2 rounded">
+                                        <span>{ file.name }</span>
+                                        <Button size="sm" variant="danger" onClick={ () => removeFile ( index ) }>
+                                            Remove
+                                        </Button>
+                                    </li>
+                                ) ) }
+                        </ul>
+                    ) }
+                </Modal.Body>
+                <Modal.Footer className="text-white border-body bg-dark">
+                    <Button className="bg-dark-green border-0 text-white"
+                            disabled={ isSending || selectedFiles.length === 0 } onClick={ sendFiles }>
+                        { isSending ? "Sending..." : "Send Files" }
+                    </Button>
+                    <Button className="bg-secondary border-0 text-white" onClick={ () => setShowFileModal ( false ) }>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     )
 }

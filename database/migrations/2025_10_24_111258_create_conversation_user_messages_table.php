@@ -11,7 +11,7 @@
                 $table -> id ();
                 $table -> foreignId ( 'conversation_id' );
                 $table -> foreignId ( 'user_id' );
-                $table -> text ( 'message' );
+                $table -> text ( 'message' ) -> nullable ();
                 $table -> json ( 'media' ) -> nullable ();
                 $table -> json ( 'attributes' ) -> nullable ();
                 $table -> timestamps ();

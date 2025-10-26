@@ -98,7 +98,15 @@ export default function Conversations ( {
                                                 : "text-gray"
                                         }` }
                                     >
-                                        { conversation?.last_message?.message ?? "Send a new message" }
+                                        {
+                                            conversation?.last_message?.message !== null ?
+                                                conversation?.last_message?.message :
+                                                (
+                                                    conversation?.last_message?.media !== null ?
+                                                        'Media message' :
+                                                        'Send a new message'
+                                                )
+                                        }
                                     </p>
                                 </div>
                                 <div className="d-flex flex-column justify-content-between align-items-end gap-2">

@@ -2,6 +2,7 @@
     
     namespace App\Services;
     
+    use App\Helpers\GeneralHelper;
     use App\Models\ConversationUserMessage;
     
     class ConversationUserMessageService {
@@ -11,6 +12,17 @@
                                                            'conversation_id' => $conversation -> id,
                                                            'user_id'         => auth () -> id (),
                                                            'message'         => $request -> input ( 'message' )
+                                                       ] );
+        }
+        
+        public function send_files ( $request, $conversation ) {
+            $files = ( new GeneralHelper() )
+                -> upload ( $request, '/uploads/conversations/' . $conversation -> id );
+            
+            return ConversationUserMessage :: create ( [
+                                                           'conversation_id' => $conversation -> id,
+                                                           'user_id'         => auth () -> id (),
+                                                           'media'           => json_encode ( $files )
                                                        ] );
         }
         

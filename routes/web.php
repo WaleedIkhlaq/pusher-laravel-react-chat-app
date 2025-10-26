@@ -36,6 +36,9 @@
         Route ::post ( 'conversations/{conversation}/send_message', [ ConversationController::class, 'send_message' ] )
             -> name ( 'conversations.send_message' );
         
+        Route ::post ( 'conversations/{conversation}/send_files', [ ConversationController::class, 'send_files' ] )
+            -> name ( 'conversations.send_files' );
+        
         Route ::post ( 'logout', [ LogoutController::class, 'logout' ] )
             -> name ( 'logout' );
         
