@@ -11,7 +11,7 @@
                 $table -> id ();
                 $table -> foreignId ( 'conversation_id' );
                 $table -> foreignId ( 'user_id' );
-                $table -> foreignId ( 'conversation_user_messages_id' );
+                $table -> foreignId ( 'conversation_user_message_id' );
                 $table -> enum ( 'state', [ 'delivered', 'read' ] ) -> default ( 'delivered' );
                 $table -> timestamps ();
                 

@@ -9,7 +9,23 @@
     class ConversationUserMessageObserver {
         
         public function created ( ConversationUserMessage $message ): void {
-            $message -> load ( 'conversation' );
+            $message -> load ( 'conversation.participants', 'delivery_receipts' );
+            
+            $participants = $message -> conversation -> participants ?? [];
+            
+            foreach ( $participants as $participant ) {
+                $isSender = $participant -> id === auth () -> id ();
+                
+                $message
+                    -> delivery_receipts ()
+                    -> create ( [
+                                    'conversation_id'              => $message -> conversation_id,
+                                    'user_id'                      => $participant -> id,
+                                    'conversation_user_message_id' => $message -> id,
+                                    'state'                        => $isSender ? 'read' : 'delivered'
+                                ] );
+            }
+            
             MessageSent ::dispatch ( $message );
             ConversationUpdated ::dispatch ( $message -> conversation );
         }
