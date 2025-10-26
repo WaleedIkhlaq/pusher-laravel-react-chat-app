@@ -6,6 +6,7 @@
     use App\Models\Conversation;
     use App\Models\User;
     use App\Services\ConversationService;
+    use App\Services\ConversationUserMessageDeliveryReceiptService;
     use App\Services\ConversationUserMessageService;
     use App\Services\ConversationUserService;
     use App\Services\UserService;
@@ -20,10 +21,11 @@
     class ConversationController extends Controller {
         
         public function __construct (
-            protected UserService                    $userService,
-            protected ConversationService            $service,
-            protected ConversationUserService        $conversationUserService,
-            protected ConversationUserMessageService $conversationUserMessageService
+            protected UserService                                   $userService,
+            protected ConversationService                           $service,
+            protected ConversationUserService                       $conversationUserService,
+            protected ConversationUserMessageService                $conversationUserMessageService,
+            protected ConversationUserMessageDeliveryReceiptService $conversationUserMessageDeliveryReceiptService,
         ) {
             //
         }
@@ -52,7 +54,18 @@
         
         public function messages ( Conversation $conversation ): JsonResponse {
             $conversation -> load ( 'messages.user' );
-            return response () -> json ( $conversation );
+            try {
+                DB ::beginTransaction ();
+                $this -> conversationUserMessageDeliveryReceiptService -> mark_read ( $conversation -> messages );
+                DB ::commit ();
+                
+                return response () -> json ( $conversation );
+            }
+            catch ( \Exception | DataException $e ) {
+                DB ::rollBack ();
+                Log ::critical ( $e );
+                return response () -> json ( [ 'error' => $e -> getMessage () ], 500 );
+            }
         }
         
         public function send_message ( Request $request, Conversation $conversation ): JsonResponse {

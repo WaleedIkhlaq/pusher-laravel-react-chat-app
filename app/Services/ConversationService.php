@@ -14,7 +14,7 @@
                     -> from ( 'conversation_users' )
                     -> where ( [ 'user_id' => auth () -> id () ] );
             } )
-                -> with ( [ 'lastMessage', 'user', 'other_participant' ] )
+                -> with ( [ 'lastMessage.delivery_receipts', 'user', 'other_participant' ] )
                 -> withMax ( 'messages', 'created_at' )
                 -> orderByDesc ( DB ::raw ( 'COALESCE(messages_max_created_at, chat_conversations.created_at)' ) )
                 -> get ();

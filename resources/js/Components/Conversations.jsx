@@ -122,7 +122,8 @@ export default function Conversations ( {
                                                 { formatTime ( conversation?.last_message?.created_at ) }
                                             </p>
                                             
-                                            <LiaCheckDoubleSolid className="text-gray" />
+                                            <LiaCheckDoubleSolid
+                                                className={ conversation?.read_status === 'read' ? 'text-light-green' : 'text-gray' } />
                                         </>
                                     ) }
                                 </div>
