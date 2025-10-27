@@ -66,6 +66,7 @@ function Index () {
         onlineChannel
             .here ( ( users ) => {
                 setOnlineUsers ( users );
+                console.log( users );
             } )
             .joining ( ( user ) => {
                 setOnlineUsers ( ( prev ) => {

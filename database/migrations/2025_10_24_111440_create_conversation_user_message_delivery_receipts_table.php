@@ -30,7 +30,7 @@
                     -> cascadeOnUpdate ();
                 
                 $table
-                    -> foreign ( 'conversation_user_messages_id', 'receipt_message_id' )
+                    -> foreign ( 'conversation_user_message_id', 'receipt_message_id' )
                     -> references ( 'id' )
                     -> on ( 'conversation_user_messages' )
                     -> cascadeOnDelete ()
